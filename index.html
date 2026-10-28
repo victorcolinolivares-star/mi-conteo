@@ -111,12 +111,14 @@ $('su').onclick=async()=>{
   const {error}=await sb.auth.signUp({email:$('em').value,password:$('pw').value});
   $('am').textContent=error?'No se pudo crear la cuenta: '+error.message:'Cuenta creada. Si pide confirmar correo, revísalo y luego entra.';};
 $('out').onclick=()=>sb.auth.signOut();
-sb.auth.onAuthStateChange(()=>boot());
+sb.auth.onAuthStateChange((event,session)=>{
+  if(event==='SIGNED_OUT'||(event==='SIGNED_IN'&&session&&session.user.id!==uid)) setTimeout(boot,0);
+});
 
 async function boot(){
   const {data:{session}}=await sb.auth.getSession();
   $('auth').hidden=!!session; $('app').hidden=!session;
-  if(!session)return; uid=session.user.id;
+  if(!session){uid=null;return;} uid=session.user.id;
   const [f,p]=await Promise.all([sb.from('foods').select('*').order('name'),sb.from('profiles').select('data').maybeSingle()]);
   foods=f.data||[]; profile=p.data?p.data.data:null;
   $('day').value=day; fillMeta(); renderFoods(); await loadDay();
