@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mi conteo diario</title>
+<style>
+:root{--bg:#f2f4ef;--ink:#1c2b27;--mut:#5d6b66;--card:#fff;--line:#d9ded8;--ac:#2d6a4f;--p:#b45309;--c:#1d4ed8;--f:#7c3aed;--bad:#b91c1c}
+@media(prefers-color-scheme:dark){:root{--bg:#141b19;--ink:#e6ede9;--mut:#9aa8a2;--card:#1d2724;--line:#2d3a36;--ac:#5bbf93;--p:#f59e0b;--c:#60a5fa;--f:#a78bfa;--bad:#f87171}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.45 system-ui,Segoe UI,Roboto,sans-serif}
+main{max-width:640px;margin:0 auto;padding:16px}
+h1{font-size:1.3rem;margin:.2rem 0 1rem}h2{font-size:1rem;margin:1.2rem 0 .5rem}
+section,.card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:14px;margin-bottom:12px}
+[hidden]{display:none!important}
+nav{display:flex;gap:6px;margin-bottom:12px;flex-wrap:wrap}
+button,input,select{font:inherit;color:inherit;background:var(--card);border:1px solid var(--line);border-radius:8px;padding:8px 10px}
+button{cursor:pointer}nav .on,button.pri{background:var(--ac);border-color:var(--ac);color:#fff}
+form{display:grid;gap:8px}.row{display:flex;gap:8px}.row>*{flex:1;min-width:0}
+label{font-size:.85rem;color:var(--mut);display:grid;gap:3px}
+ul{list-style:none;margin:0;padding:0}li{display:flex;justify-content:space-between;gap:8px;padding:8px 0;border-top:1px solid var(--line)}
+li small{color:var(--mut);display:block}li button{padding:2px 8px}
+.big{font-size:2rem;font-weight:700}.big.neg{color:var(--bad)}
+.bar{height:8px;background:var(--line);border-radius:4px;overflow:hidden;margin:3px 0 10px}.bar i{display:block;height:100%}
+.mut{color:var(--mut);font-size:.85rem}
+:focus-visible{outline:2px solid var(--ac);outline-offset:2px}
+</style>
+</head>
+<body>
+<main>
+<h1>Mi conteo diario</h1>
+
+<section id="auth" hidden>
+  <form id="fa">
+    <label>Correo<input id="em" type="email" required autocomplete="email"></label>
+    <label>Contraseña (mínimo 6 caracteres)<input id="pw" type="password" required minlength="6" autocomplete="current-password"></label>
+    <div class="row"><button class="pri" type="submit">Entrar</button><button type="button" id="su">Crear cuenta</button></div>
+    <div id="am" class="mut"></div>
+  </form>
+</section>
+
+<div id="app" hidden>
+<nav>
+  <button data-t="hoy" class="on">Hoy</button><button data-t="alim">Alimentos</button><button data-t="meta">Mi meta</button><button id="out">Salir</button>
+</nav>
+
+<section id="t-hoy">
+  <input type="date" id="day" aria-label="Día">
+  <div id="sum" style="margin-top:12px"></div>
+  <h2>Registrar lo que comí</h2>
+  <form id="fe">
+    <input id="fn" list="dl" placeholder="Alimento" required autocomplete="off"><datalist id="dl"></datalist>
+    <div class="row"><input id="fg" type="number" step="any" min="0" placeholder="Cantidad" required>
+    <select id="fu"><option value="g">gramos</option><option value="kg">kilos</option></select></div>
+    <button class="pri" type="submit">Agregar</button>
+  </form>
+  <ul id="ents"></ul>
+</section>
+
+<section id="t-alim" hidden>
+  <h2 style="margin-top:0">Agregar alimento nuevo</h2>
+  <form id="ff">
+    <input id="an" placeholder="Nombre del producto" required>
+    <p class="mut" style="margin:0">Valores de la tabla nutrimental por cada 100 g</p>
+    <div class="row"><label>kcal<input id="ak" type="number" step="any" min="0" required></label>
+    <label>Proteína g<input id="ap" type="number" step="any" min="0" value="0"></label></div>
+    <div class="row"><label>Carbohidratos g<input id="ac" type="number" step="any" min="0" value="0"></label>
+    <label>Grasa g<input id="af" type="number" step="any" min="0" value="0"></label></div>
+    <button class="pri" type="submit">Guardar alimento</button>
+    <p class="mut" style="margin:0">Si la etiqueta trae otra porción, divide entre sus gramos y multiplica por 100.</p>
+  </form>
+  <h2>Mis alimentos y base</h2>
+  <input id="q" placeholder="Buscar…" style="width:100%">
+  <ul id="fl"></ul>
+</section>
+
+<section id="t-meta" hidden>
+  <form id="fm">
+    <div class="row"><label>Sexo<select id="mx"><option value="m">Hombre</option><option value="f">Mujer</option></select></label>
+    <label>Edad<input id="ma" type="number" required min="14"></label></div>
+    <div class="row"><label>Peso (kg)<input id="mw" type="number" step="any" required></label>
+    <label>Estatura (cm)<input id="mh" type="number" step="any" required></label></div>
+    <label>Actividad<select id="mv">
+      <option value="1.2">Sedentario</option><option value="1.375">Gym 1–3 días/sem</option>
+      <option value="1.55" selected>Gym 3–5 días/sem</option><option value="1.725">Gym 6–7 días/sem</option></select></label>
+    <label>Objetivo<select id="mg"><option value="0.8">Definición (−20%)</option>
+      <option value="1" selected>Mantenimiento</option><option value="1.1">Volumen (+10%)</option></select></label>
+    <button class="pri" type="submit">Calcular y guardar</button>
+  </form>
+  <div id="mr" style="margin-top:12px"></div>
+</section>
+</div>
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
+<script>
+// 1) Pega aquí los datos de tu proyecto (Supabase > Project Settings > API)
+const SB_URL='https://okywfxygghcvjhnfdoby.supabase.co', SB_KEY='sb_publishable_Hlecj9MpByehOSf5BJ7-JQ_7scC3JIc';
+
+const sb=supabase.createClient(SB_URL,SB_KEY), $=id=>document.getElementById(id);
+let uid=null, foods=[], entries=[], profile=null, day=today();
+function today(){const d=new Date();return new Date(d-d.getTimezoneOffset()*6e4).toISOString().slice(0,10)}
+const n=x=>Number(x)||0, R=(x,d=0)=>n(x).toFixed(d);
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+
+// ---- Sesión ----
+$('fa').onsubmit=async e=>{e.preventDefault();
+  const {error}=await sb.auth.signInWithPassword({email:$('em').value,password:$('pw').value});
+  if(error)$('am').textContent='No se pudo entrar: '+error.message;};
+$('su').onclick=async()=>{
+  const {error}=await sb.auth.signUp({email:$('em').value,password:$('pw').value});
+  $('am').textContent=error?'No se pudo crear la cuenta: '+error.message:'Cuenta creada. Si pide confirmar correo, revísalo y luego entra.';};
+$('out').onclick=()=>sb.auth.signOut();
+sb.auth.onAuthStateChange(()=>boot());
+
+async function boot(){
+  const {data:{session}}=await sb.auth.getSession();
+  $('auth').hidden=!!session; $('app').hidden=!session;
+  if(!session)return; uid=session.user.id;
+  const [f,p]=await Promise.all([sb.from('foods').select('*').order('name'),sb.from('profiles').select('data').maybeSingle()]);
+  foods=f.data||[]; profile=p.data?p.data.data:null;
+  $('day').value=day; fillMeta(); renderFoods(); await loadDay();
+}
+
+// ---- Pestañas ----
+document.querySelectorAll('nav [data-t]').forEach(b=>b.onclick=()=>{
+  document.querySelectorAll('nav [data-t]').forEach(x=>x.classList.toggle('on',x===b));
+  ['hoy','alim','meta'].forEach(t=>$('t-'+t).hidden=t!==b.dataset.t);});
+
+// ---- Meta (Mifflin-St Jeor) ----
+function calc(d){
+  const bmr=10*d.w+6.25*d.h-5*d.a+(d.s==='m'?5:-161), tdee=bmr*d.v, kcal=tdee*d.g;
+  const p=2*d.w, f=0.8*d.w, c=Math.max(0,(kcal-p*4-f*9)/4);
+  return {bmr,tdee,kcal,p,c,f};
+}
+function fillMeta(){
+  if(!profile){$('mr').innerHTML='<p class="mut">Captura tus datos para calcular tu meta diaria.</p>';return;}
+  $('mx').value=profile.s;$('ma').value=profile.a;$('mw').value=profile.w;$('mh').value=profile.h;$('mv').value=profile.v;$('mg').value=profile.g;
+  const t=calc(profile);
+  $('mr').innerHTML=`<div class="card"><div class="big">${R(t.kcal)} kcal</div>
+  <p class="mut">Metabolismo basal ${R(t.bmr)} · Gasto total ${R(t.tdee)}<br>
+  Proteína ${R(t.p)} g · Carbohidratos ${R(t.c)} g · Grasa ${R(t.f)} g</p></div>`;
+}
+$('fm').onsubmit=async e=>{e.preventDefault();
+  profile={s:$('mx').value,a:n($('ma').value),w:n($('mw').value),h:n($('mh').value),v:n($('mv').value),g:n($('mg').value)};
+  await sb.from('profiles').upsert({user_id:uid,data:profile}); fillMeta(); renderDay();};
+
+// ---- Registro del día ----
+$('day').onchange=()=>{day=$('day').value||today();loadDay();};
+async function loadDay(){
+  const {data}=await sb.from('entries').select('*').eq('day',day).order('id'); entries=data||[]; renderDay();
+}
+function bar(label,val,goal,color){
+  const pct=goal?Math.min(100,val/goal*100):0;
+  return `<div class="mut">${label}: ${R(val)} / ${R(goal)} g · quedan ${R(goal-val)}</div><div class="bar"><i style="width:${pct}%;background:${color}"></i></div>`;
+}
+function renderDay(){
+  const T=entries.reduce((a,x)=>({k:a.k+n(x.kcal),p:a.p+n(x.p),c:a.c+n(x.c),f:a.f+n(x.f)}),{k:0,p:0,c:0,f:0});
+  if(!profile){$('sum').innerHTML=`<div class="card"><div class="big">${R(T.k)} kcal</div><p class="mut">Calcula tu meta en la pestaña “Mi meta” para ver cuánto te queda.</p></div>`;}
+  else{const g=calc(profile), left=g.kcal-T.k;
+    $('sum').innerHTML=`<div class="card"><div class="mut">Te quedan</div><div class="big ${left<0?'neg':''}">${R(left)} kcal</div>
+    <div class="mut">Consumidas ${R(T.k)} de ${R(g.kcal)}</div><div class="bar"><i style="width:${Math.min(100,T.k/g.kcal*100)}%;background:var(--ac)"></i></div>
+    ${bar('Proteína',T.p,g.p,'var(--p)')}${bar('Carbohidratos',T.c,g.c,'var(--c)')}${bar('Grasa',T.f,g.f,'var(--f)')}</div>`;}
+  $('ents').innerHTML=entries.map(x=>`<li><span>${esc(x.food_name)} · ${R(x.grams)} g<small>${R(x.kcal)} kcal · P ${R(x.p,1)} · C ${R(x.c,1)} · G ${R(x.f,1)}</small></span><button data-d="${x.id}" aria-label="Quitar">✕</button></li>`).join('');
+  $('ents').querySelectorAll('[data-d]').forEach(b=>b.onclick=async()=>{await sb.from('entries').delete().eq('id',b.dataset.d);loadDay();});
+}
+$('fe').onsubmit=async e=>{e.preventDefault();
+  const f=foods.find(x=>x.name.toLowerCase()===$('fn').value.trim().toLowerCase());
+  if(!f)return alert('Ese alimento no existe. Agrégalo en la pestaña “Alimentos”.');
+  const g=n($('fg').value)*($('fu').value==='kg'?1000:1), k=g/100;
+  await sb.from('entries').insert({day,food_name:f.name,grams:g,kcal:n(f.kcal100)*k,p:n(f.p100)*k,c:n(f.c100)*k,f:n(f.f100)*k});
+  $('fe').reset(); loadDay();};
+
+// ---- Catálogo de alimentos ----
+function renderFoods(){
+  $('dl').innerHTML=foods.map(f=>`<option value="${esc(f.name)}">`).join('');
+  const q=$('q').value.toLowerCase();
+  $('fl').innerHTML=foods.filter(f=>f.name.toLowerCase().includes(q)).map(f=>
+    `<li><span>${esc(f.name)}<small>por 100 g: ${R(f.kcal100)} kcal · P ${R(f.p100,1)} · C ${R(f.c100,1)} · G ${R(f.f100,1)}</small></span>${f.user_id?`<button data-x="${f.id}" aria-label="Borrar">✕</button>`:''}</li>`).join('');
+  $('fl').querySelectorAll('[data-x]').forEach(b=>b.onclick=async()=>{
+    if(!confirm('¿Borrar este alimento?'))return; await sb.from('foods').delete().eq('id',b.dataset.x);
+    foods=foods.filter(f=>f.id!=b.dataset.x); renderFoods();});
+}
+$('q').oninput=renderFoods;
+$('ff').onsubmit=async e=>{e.preventDefault();
+  const row={user_id:uid,name:$('an').value.trim(),kcal100:n($('ak').value),p100:n($('ap').value),c100:n($('ac').value),f100:n($('af').value)};
+  const {data,error}=await sb.from('foods').insert(row).select().single();
+  if(error)return alert('No se guardó: '+error.message);
+  foods.push(data); foods.sort((a,b)=>a.name.localeCompare(b.name)); $('ff').reset(); renderFoods();};
+
+boot();
+</script>
+</body>
+</html>
